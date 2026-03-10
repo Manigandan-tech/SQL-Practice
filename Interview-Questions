@@ -1,0 +1,32 @@
+-- Most ordered product
+SELECT TOP 1
+    p.product_id,
+    p.product_name,
+    COUNT(od.product_id) AS total_orders
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY total_orders DESC;
+
+-- Customers who ordered on multiple days
+SELECT c.customer_name,
+       COUNT(DISTINCT o.order_date) AS order_days
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_name
+HAVING COUNT(DISTINCT o.order_date) > 1;
+
+-- Second highest spending customer
+SELECT customer_name, total_spent
+FROM (
+    SELECT c.customer_name,
+           SUM(o.total_amount) AS total_spent,
+           DENSE_RANK() OVER (ORDER BY SUM(o.total_amount) DESC) AS rnk
+    FROM customers c
+    JOIN orders o
+    ON c.customer_id = o.customer_id
+    GROUP BY c.customer_name
+) t
+WHERE rnk = 2;
